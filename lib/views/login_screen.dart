@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
-import 'home_screen.dart';
+import '../theme/app_theme.dart';
+import 'widgets/aurora_background.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,187 +12,192 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _nameController = TextEditingController();
   bool _isSignUp = false;
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit(AuthController auth) async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final success = _isSignUp
+        ? await auth.signUp(
+            _emailController.text.trim(),
+            _passwordController.text.trim(),
+            _nameController.text.trim(),
+          )
+        : await auth.signIn(
+            _emailController.text.trim(),
+            _passwordController.text.trim(),
+          );
+
+    if (!mounted) return;
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Authentification reussie.')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(auth.errorMessage ?? 'Echec de l authentification.'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+      body: AuroraBackground(
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    '🎤 Aigle au Stade',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+              padding: const EdgeInsets.all(20),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 460),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 240),
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface.withValues(alpha: 0.86),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.12),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Concert Fally Ipupa',
-                    style: TextStyle(fontSize: 18, color: Colors.white70),
-                  ),
-                  const SizedBox(height: 48),
-                  if (_isSignUp)
-                    TextField(
-                      controller: _nameController,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Nom',
-                        labelStyle: const TextStyle(color: Colors.white70),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.white30),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.blue),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  if (_isSignUp) const SizedBox(height: 16),
-                  TextField(
-                    controller: _emailController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Email',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white30),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.blue),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Mot de passe',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white30),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.blue),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Consumer<AuthController>(
-                    builder: (context, auth, _) {
-                      if (auth.isLoading) {
-                        return const CircularProgressIndicator();
-                      }
-                      return Column(
-                        children: [
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () async {
-                                final success = _isSignUp
-                                    ? await auth.signUp(
-                                        _emailController.text,
-                                        _passwordController.text,
-                                        _nameController.text,
-                                      )
-                                    : await auth.signIn(
-                                        _emailController.text,
-                                        _passwordController.text,
-                                      );
-                                if (success && context.mounted) {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const HomeScreen(),
-                                    ),
-                                  );
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: Text(
-                                _isSignUp ? 'S\'inscrire' : 'Se connecter',
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'AIGLE AU STADE',
+                          style: TextStyle(
+                            fontFamily: 'Impact',
+                            fontSize: 28,
+                            letterSpacing: 1.4,
                           ),
-                          const SizedBox(height: 16),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: () async {
-                                final success = await auth.signInWithGoogle();
-                                if (success && context.mounted) {
-                                  Navigator.pushReplacement(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const HomeScreen(),
-                                    ),
-                                  );
-                                }
-                              },
-                              icon: const Icon(Icons.login, color: Colors.white),
-                              label: const Text(
-                                'Continuer avec Google',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                side: const BorderSide(color: Colors.white30),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                            ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'Billetterie live pour vos concerts premium.',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.72),
                           ),
-                          const SizedBox(height: 16),
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _isSignUp = !_isSignUp;
-                              });
+                        ),
+                        const SizedBox(height: 24),
+                        Wrap(
+                          spacing: 10,
+                          children: [
+                            ChoiceChip(
+                              label: const Text('Connexion'),
+                              selected: !_isSignUp,
+                              onSelected: (_) => setState(() => _isSignUp = false),
+                            ),
+                            ChoiceChip(
+                              label: const Text('Inscription'),
+                              selected: _isSignUp,
+                              onSelected: (_) => setState(() => _isSignUp = true),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        if (_isSignUp) ...[
+                          TextFormField(
+                            controller: _nameController,
+                            textInputAction: TextInputAction.next,
+                            decoration: const InputDecoration(labelText: 'Nom complet'),
+                            validator: (value) {
+                              if (!_isSignUp) return null;
+                              if (value == null || value.trim().length < 3) {
+                                return 'Entrez un nom valide.';
+                              }
+                              return null;
                             },
-                            child: Text(
-                              _isSignUp
-                                  ? 'Déjà un compte ? Se connecter'
-                                  : 'Pas de compte ? S\'inscrire',
-                              style: const TextStyle(color: Colors.white70),
-                            ),
                           ),
+                          const SizedBox(height: 12),
                         ],
-                      );
-                    },
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(labelText: 'Email'),
+                          validator: (value) {
+                            if (value == null || !value.contains('@')) {
+                              return 'Entrez un email valide.';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: true,
+                          textInputAction: TextInputAction.done,
+                          decoration: const InputDecoration(labelText: 'Mot de passe'),
+                          validator: (value) {
+                            if (value == null || value.length < 6) {
+                              return '6 caracteres minimum.';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 18),
+                        Consumer<AuthController>(
+                          builder: (context, auth, _) {
+                            if (auth.isLoading) {
+                              return const Center(child: CircularProgressIndicator());
+                            }
+                            return Column(
+                              children: [
+                                ElevatedButton(
+                                  onPressed: () => _submit(auth),
+                                  child: Text(
+                                    _isSignUp ? 'Creer mon compte' : 'Me connecter',
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                OutlinedButton.icon(
+                                  onPressed: () async {
+                                    final messenger = ScaffoldMessenger.of(context);
+                                    final success = await auth.signInWithGoogle();
+                                    if (!mounted) return;
+                                    if (!success) {
+                                      messenger.showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            auth.errorMessage ??
+                                                'Connexion Google indisponible.',
+                                          ),
+                                          backgroundColor: AppColors.danger,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  style: OutlinedButton.styleFrom(
+                                    minimumSize: const Size.fromHeight(52),
+                                  ),
+                                  icon: const Icon(Icons.login),
+                                  label: const Text('Continuer avec Google'),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ],
+                ),
               ),
             ),
           ),

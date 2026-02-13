@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/event_controller.dart';
+import '../models/event.dart';
+import '../theme/app_theme.dart';
 import 'event_detail_screen.dart';
 import 'my_tickets_screen.dart';
+import 'widgets/aurora_background.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,6 +16,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String _query = '';
+
   @override
   void initState() {
     super.initState();
@@ -21,15 +26,39 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<void> _signOut() async {
+    await context.read<AuthController>().signOut();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Deconnexion reussie.')),
+    );
+  }
+
+  List<Event> _filterEvents(List<Event> events) {
+    if (_query.trim().isEmpty) return events;
+    final search = _query.toLowerCase().trim();
+    return events.where((event) {
+      return event.title.toLowerCase().contains(search) ||
+          event.artist.toLowerCase().contains(search) ||
+          event.location.toLowerCase().contains(search);
+    }).toList();
+  }
+
+  String _dateLabel(DateTime date) {
+    return '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/'
+        '${date.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🎤 Aigle au Stade'),
-        backgroundColor: const Color(0xFF1a1a2e),
+        title: const Text('Aigle au Stade'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.confirmation_number),
+            tooltip: 'Mes billets',
+            icon: const Icon(Icons.confirmation_number_outlined),
             onPressed: () {
               Navigator.push(
                 context,
@@ -38,149 +67,209 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           IconButton(
+            tooltip: 'Deconnexion',
             icon: const Icon(Icons.logout),
-            onPressed: () {
-              context.read<AuthController>().signOut();
-              Navigator.pushReplacementNamed(context, '/');
-            },
+            onPressed: _signOut,
           ),
         ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Consumer<EventController>(
-          builder: (context, eventController, _) {
-            if (eventController.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-
-            if (eventController.events.isEmpty) {
-              return const Center(
-                child: Text(
-                  'Aucun événement disponible',
-                  style: TextStyle(color: Colors.white70, fontSize: 16),
-                ),
-              );
-            }
-
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: eventController.events.length,
-              itemBuilder: (context, index) {
-                final event = eventController.events[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  color: const Color(0xFF0f3460),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => EventDetailScreen(event: event),
+      body: AuroraBackground(
+        child: SafeArea(
+          top: false,
+          child: Consumer<EventController>(
+            builder: (context, eventController, _) {
+              final filtered = _filterEvents(eventController.events);
+              return RefreshIndicator(
+                onRefresh: () async => eventController.loadEvents(),
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(22),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF1A2A4B), Color(0xFF2B1A5A)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                      );
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.12),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Concerts en direct',
+                            style: Theme.of(context).textTheme.headlineSmall,
                           ),
-                          child: Image.network(
-                            event.imageUrl,
-                            height: 200,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              height: 200,
-                              color: Colors.grey[800],
-                              child: const Icon(Icons.music_note, size: 64),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Choisissez votre place et gerez vos billets en temps reel.',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.76),
                             ),
                           ),
+                          const SizedBox(height: 16),
+                          TextField(
+                            onChanged: (value) => setState(() => _query = value),
+                            decoration: const InputDecoration(
+                              prefixIcon: Icon(Icons.search),
+                              hintText: 'Rechercher artiste, titre ou lieu...',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    if (eventController.isLoading)
+                      const Padding(
+                        padding: EdgeInsets.all(30),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    else if (filtered.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface.withValues(alpha: 0.84),
+                          borderRadius: BorderRadius.circular(18),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                event.title,
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                event.artist,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.blue,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(Icons.location_on,
-                                      size: 16, color: Colors.white70),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    event.location,
-                                    style: const TextStyle(color: Colors.white70),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(Icons.calendar_today,
-                                      size: 16, color: Colors.white70),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${event.date.day}/${event.date.month}/${event.date.year}',
-                                    style: const TextStyle(color: Colors.white70),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    '\$${event.price.toStringAsFixed(2)}',
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green,
-                                    ),
-                                  ),
-                                  Text(
-                                    '${event.availableTickets} billets',
-                                    style: const TextStyle(color: Colors.white70),
-                                  ),
-                                ],
-                              ),
-                            ],
+                        child: const Column(
+                          children: [
+                            Icon(Icons.event_busy, size: 44, color: Colors.white70),
+                            SizedBox(height: 10),
+                            Text(
+                              'Aucun evenement trouve.',
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      ...filtered.map(
+                        (event) => Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: _EventCard(
+                            event: event,
+                            dateLabel: _dateLabel(event.date),
                           ),
                         ),
-                      ],
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EventCard extends StatelessWidget {
+  final Event event;
+  final String dateLabel;
+
+  const _EventCard({
+    required this.event,
+    required this.dateLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => EventDetailScreen(event: event)),
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              child: Stack(
+                children: [
+                  Image.network(
+                    event.imageUrl,
+                    height: 190,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 190,
+                      color: AppColors.surfaceSoft,
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.music_note, size: 56),
                     ),
                   ),
-                );
-              },
-            );
-          },
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.56),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '$dateLabel  |  ${event.availableTickets} billets',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.title,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    event.artist,
+                    style: const TextStyle(
+                      color: AppColors.accentAlt,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      const Icon(Icons.location_on_outlined, size: 16),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          event.location,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.76),
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '\$${event.price.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.accent,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
