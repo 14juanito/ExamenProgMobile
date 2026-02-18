@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 import '../models/event.dart';
 import '../models/artist_track.dart';
 import '../services/firestore_service.dart';
@@ -8,7 +7,6 @@ import '../services/external_music_service.dart';
 class EventController extends ChangeNotifier {
   final FirestoreService _firestoreService = FirestoreService();
   final ExternalMusicService _externalMusicService = ExternalMusicService();
-  StreamSubscription<List<Event>>? _eventsSubscription;
   final Map<String, List<ArtistTrack>> _artistTracksCache = {};
 
   List<Event> _events = [];
@@ -18,21 +16,15 @@ class EventController extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   void loadEvents() {
-    _eventsSubscription?.cancel();
     _isLoading = true;
     notifyListeners();
 
-    _eventsSubscription = _firestoreService.getEvents().listen(
-      (events) {
-        _events = events;
-        _isLoading = false;
-        notifyListeners();
-      },
-      onError: (_) {
-        _isLoading = false;
-        notifyListeners();
-      },
-    );
+    try {
+      _events = _firestoreService.getEvents();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<List<ArtistTrack>> loadArtistTracks(
@@ -51,7 +43,6 @@ class EventController extends ChangeNotifier {
 
   @override
   void dispose() {
-    _eventsSubscription?.cancel();
     _externalMusicService.dispose();
     super.dispose();
   }

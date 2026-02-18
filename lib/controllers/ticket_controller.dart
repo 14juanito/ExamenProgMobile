@@ -14,20 +14,22 @@ class TicketController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    _firestoreService.getUserTickets(userId).listen((tickets) {
-      _tickets = tickets;
-      _isLoading = false;
-      notifyListeners();
-    });
+    _tickets = _firestoreService.getUserTickets(userId);
+    _isLoading = false;
+    notifyListeners();
   }
 
   Future<void> purchaseTicket(Ticket ticket) async {
     await _firestoreService.purchaseTicket(ticket);
+    _tickets = _firestoreService.getUserTickets(ticket.userId);
     notifyListeners();
   }
 
   Future<void> scanTicket(String ticketId) async {
     await _firestoreService.scanTicket(ticketId);
+    if (_tickets.isNotEmpty) {
+      _tickets = _firestoreService.getUserTickets(_tickets.first.userId);
+    }
     notifyListeners();
   }
 

@@ -13,22 +13,6 @@ class AuthController extends ChangeNotifier {
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _user != null;
 
-  AuthController() {
-    _authService.authStateChanges.listen((firebaseUser) {
-      if (firebaseUser != null) {
-        _user = User(
-          id: firebaseUser.uid,
-          email: firebaseUser.email!,
-          name: firebaseUser.displayName ?? 'User',
-          photoUrl: firebaseUser.photoURL,
-        );
-      } else {
-        _user = null;
-      }
-      notifyListeners();
-    });
-  }
-
   Future<bool> signIn(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;

@@ -1,80 +1,65 @@
-import 'package:firebase_auth/firebase_auth.dart' as auth;
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 import '../models/user.dart';
 
+/// Frontend-only auth stub to decouple the UI from Firebase/Google Sign-In.
+/// Accepts any credentials and keeps the "session" in memory.
 class AuthService {
-  final auth.FirebaseAuth _firebaseAuth = auth.FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final Map<String, String> _passwords = {}; // email -> password
+  final Map<String, User> _users = {};
+  final StreamController<User?> _authStream =
+      StreamController<User?>.broadcast();
 
-  Stream<auth.User?> get authStateChanges => _firebaseAuth.authStateChanges();
+  Stream<User?> get authStateChanges => _authStream.stream;
 
   Future<User?> signInWithEmail(String email, String password) async {
-    final credential = await _firebaseAuth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    return _getUserFromFirebase(credential.user);
+    await Future.delayed(const Duration(milliseconds: 260));
+    final storedPassword = _passwords[email];
+
+    if (storedPassword != null && storedPassword != password) {
+      throw Exception('Mot de passe incorrect.');
+    }
+
+    final user = _users[email] ??
+        User(
+          id: 'local-${email.hashCode}',
+          email: email,
+          name: email.split('@').first,
+        );
+
+    _users[email] = user;
+    _passwords[email] = password;
+    _authStream.add(user);
+    return user;
   }
 
   Future<User?> signUpWithEmail(String email, String password, String name) async {
-    final credential = await _firebaseAuth.createUserWithEmailAndPassword(
+    await Future.delayed(const Duration(milliseconds: 260));
+    final user = User(
+      id: 'local-${email.hashCode}',
       email: email,
-      password: password,
+      name: name,
     );
-    
-    if (credential.user != null) {
-      final user = User(
-        id: credential.user!.uid,
-        email: email,
-        name: name,
-      );
-      await _firestore.collection('users').doc(user.id).set(user.toJson());
-      return user;
-    }
-    return null;
+    _users[email] = user;
+    _passwords[email] = password;
+    _authStream.add(user);
+    return user;
   }
 
   Future<User?> signInWithGoogle() async {
-    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-    if (googleUser == null) return null;
-
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-    final credential = auth.GoogleAuthProvider.credential(
-      accessToken: googleAuth.accessToken,
-      idToken: googleAuth.idToken,
+    await Future.delayed(const Duration(milliseconds: 260));
+    final user = User(
+      id: 'google-demo',
+      email: 'demo@aigleaustade.app',
+      name: 'Fan Demo',
+      photoUrl: null,
     );
-
-    final userCredential = await _firebaseAuth.signInWithCredential(credential);
-    
-    if (userCredential.user != null) {
-      final user = User(
-        id: userCredential.user!.uid,
-        email: userCredential.user!.email!,
-        name: userCredential.user!.displayName ?? 'User',
-        photoUrl: userCredential.user!.photoURL,
-      );
-      await _firestore.collection('users').doc(user.id).set(user.toJson());
-      return user;
-    }
-    return null;
+    _users[user.email] = user;
+    _authStream.add(user);
+    return user;
   }
 
   Future<void> signOut() async {
-    await _googleSignIn.signOut();
-    await _firebaseAuth.signOut();
+    await Future.delayed(const Duration(milliseconds: 120));
+    _authStream.add(null);
   }
-
-  User? _getUserFromFirebase(auth.User? firebaseUser) {
-    if (firebaseUser == null) return null;
-    return User(
-      id: firebaseUser.uid,
-      email: firebaseUser.email!,
-      name: firebaseUser.displayName ?? 'User',
-      photoUrl: firebaseUser.photoURL,
-    );
-  }
-
-  auth.User? get currentUser => _firebaseAuth.currentUser;
 }

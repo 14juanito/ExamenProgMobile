@@ -5,7 +5,6 @@ import '../controllers/ticket_controller.dart';
 import '../models/ticket.dart';
 import '../theme/app_theme.dart';
 import 'ticket_detail_screen.dart';
-import 'widgets/aurora_background.dart';
 
 class MyTicketsScreen extends StatefulWidget {
   const MyTicketsScreen({super.key});
@@ -36,50 +35,55 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Mes billets')),
-      body: AuroraBackground(
-        child: Consumer<TicketController>(
-          builder: (context, ticketController, _) {
-            if (ticketController.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
+      body: Consumer<TicketController>(
+        builder: (context, ticketController, _) {
+          if (ticketController.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            if (ticketController.tickets.isEmpty) {
-              return Center(
-                child: Container(
-                  margin: const EdgeInsets.all(24),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface.withValues(alpha: 0.84),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.confirmation_num_outlined, size: 44),
-                      SizedBox(height: 10),
-                      Text('Aucun billet achete pour le moment.'),
-                    ],
-                  ),
+          if (ticketController.tickets.isEmpty) {
+            return Center(
+              child: Container(
+                margin: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppColors.surface.withOpacity(0.94),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.06),
+                      blurRadius: 12,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.confirmation_num_outlined, size: 44),
+                    SizedBox(height: 10),
+                    Text('Aucun billet achete pour le moment.'),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            itemCount: ticketController.tickets.length,
+            itemBuilder: (context, index) {
+              final ticket = ticketController.tickets[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _TicketCard(
+                  ticket: ticket,
+                  dateLabel: _dateLabel(ticket.eventDate),
                 ),
               );
-            }
-
-            return ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-              itemCount: ticketController.tickets.length,
-              itemBuilder: (context, index) {
-                final ticket = ticketController.tickets[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _TicketCard(
-                    ticket: ticket,
-                    dateLabel: _dateLabel(ticket.eventDate),
-                  ),
-                );
-              },
-            );
-          },
-        ),
+            },
+          );
+        },
       ),
     );
   }
@@ -146,6 +150,8 @@ class _TicketCard extends StatelessWidget {
               const SizedBox(height: 6),
               _line(Icons.calendar_today_outlined, dateLabel),
               const SizedBox(height: 10),
+              _line(Icons.event_seat_outlined, 'Catégorie : ${ticket.seatCategory} x${ticket.quantity}'),
+              const SizedBox(height: 10),
               Text(
                 '\$${ticket.price.toStringAsFixed(2)}',
                 style: const TextStyle(
@@ -164,12 +170,12 @@ class _TicketCard extends StatelessWidget {
   Widget _line(IconData icon, String value) {
     return Row(
       children: [
-        Icon(icon, size: 15, color: Colors.white.withValues(alpha: 0.8)),
+        Icon(icon, size: 15, color: Colors.black.withOpacity(0.8)),
         const SizedBox(width: 6),
         Expanded(
           child: Text(
             value,
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.78)),
+            style: TextStyle(color: Colors.black.withOpacity(0.78)),
           ),
         ),
       ],

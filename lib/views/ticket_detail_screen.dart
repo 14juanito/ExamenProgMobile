@@ -11,36 +11,38 @@ class TicketDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: const Text('Détails du Billet'),
-        backgroundColor: const Color(0xFF1a1a2e),
+        title: const Text('Détails du billet'),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const QRScannerScreen()),
+          );
+        },
+        backgroundColor: Colors.black,
+        icon: const Icon(Icons.qr_code_scanner),
+        label: const Text('Scanner un billet'),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
                     QrImageView(
                       data: ticket.id,
                       version: QrVersions.auto,
-                      size: 250,
+                      size: 220,
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     Text(
                       'ID: ${ticket.id}',
                       style: const TextStyle(
@@ -51,13 +53,13 @@ class TicketDetailScreen extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0f3460),
-                  borderRadius: BorderRadius.circular(16),
-                ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              elevation: 8,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.all(18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -66,16 +68,10 @@ class TicketDetailScreen extends StatelessWidget {
                       children: [
                         const Text(
                           'Statut',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white70,
-                          ),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: ticket.isScanned ? Colors.green : Colors.orange,
                             borderRadius: BorderRadius.circular(12),
@@ -90,21 +86,21 @@ class TicketDetailScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const Divider(height: 32, color: Colors.white30),
+                    const SizedBox(height: 14),
                     Text(
                       ticket.eventTitle,
                       style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
                       ticket.eventArtist,
                       style: const TextStyle(
-                        fontSize: 18,
-                        color: Colors.blue,
+                        fontSize: 16,
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -131,33 +127,34 @@ class TicketDetailScreen extends StatelessWidget {
                       'Acheté le',
                       '${ticket.purchaseDate.day}/${ticket.purchaseDate.month}/${ticket.purchaseDate.year}',
                     ),
+                    const SizedBox(height: 12),
+                    _buildInfoRow(
+                      Icons.event_seat,
+                      'Catégorie',
+                      '${ticket.seatCategory} x${ticket.quantity}',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildInfoRow(
+                      Icons.phone_iphone,
+                      'Mobile Money',
+                      '${ticket.paymentOperator} • ${ticket.payerPhone.isEmpty ? 'Non fourni' : ticket.payerPhone}',
+                    ),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              const Text(
-                'Présentez ce QR code à l\'entrée',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white70,
-                  fontStyle: FontStyle.italic,
-                ),
-                textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 14),
+            const Text(
+              'Présentez ce QR code à l\'entrée.',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.black54,
+                fontStyle: FontStyle.italic,
               ),
-            ],
-          ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const QRScannerScreen()),
-          );
-        },
-        backgroundColor: Colors.blue,
-        icon: const Icon(Icons.qr_code_scanner),
-        label: const Text('Scanner un billet'),
       ),
     );
   }
@@ -165,23 +162,16 @@ class TicketDetailScreen extends StatelessWidget {
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Colors.white70),
+        Icon(icon, size: 20, color: Colors.black87),
         const SizedBox(width: 8),
         Text(
-          '$label: ',
-          style: const TextStyle(
-            fontSize: 14,
-            color: Colors.white70,
-          ),
+          '$label : ',
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.white,
-              fontWeight: FontWeight.w500,
-            ),
+            style: const TextStyle(fontSize: 14, color: Colors.black87),
           ),
         ),
       ],
