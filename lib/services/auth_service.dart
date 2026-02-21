@@ -49,7 +49,7 @@ class AuthService {
     await Future.delayed(const Duration(milliseconds: 260));
     final user = User(
       id: 'google-demo',
-      email: 'demo@aigleaustade.app',
+      email: 'demo@eticket.app',
       name: 'Fan Demo',
       photoUrl: null,
     );

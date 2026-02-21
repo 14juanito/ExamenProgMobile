@@ -1,6 +1,6 @@
 {
-    "name": "aigle_au_stade",
-    "short_name": "aigle_au_stade",
+    "name": "e-ticket",
+    "short_name": "e-ticket",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

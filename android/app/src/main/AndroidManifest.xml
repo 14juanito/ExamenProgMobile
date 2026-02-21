@@ -3,7 +3,7 @@
     <uses-permission android:name="android.permission.CAMERA" />
 
     <application
-        android:label="aigle_au_stade"
+        android:label="e-ticket"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
