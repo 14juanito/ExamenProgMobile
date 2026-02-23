@@ -119,18 +119,31 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(28),
-              child: Image.network(
-                event.imageUrl,
-                height: 260,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  height: 260,
-                  color: Colors.black12,
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.image_not_supported_outlined, size: 40),
-                ),
-              ),
+              child: event.imageUrl.startsWith('assets/')
+                  ? Image.asset(
+                      event.imageUrl,
+                      height: 260,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 260,
+                        color: Colors.black12,
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.image_not_supported_outlined, size: 40),
+                      ),
+                    )
+                  : Image.network(
+                      event.imageUrl,
+                      height: 260,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 260,
+                        color: Colors.black12,
+                        alignment: Alignment.center,
+                        child: const Icon(Icons.image_not_supported_outlined, size: 40),
+                      ),
+                    ),
             ),
             const SizedBox(height: 16),
               Row(
@@ -363,19 +376,38 @@ class _PhotosRow extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        SizedBox(
+            SizedBox(
           height: 64,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: images.length,
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, index) => ClipOval(
-              child: Image.network(
-                images[index],
-                width: 64,
-                height: 64,
-                fit: BoxFit.cover,
-              ),
+              child: images[index].startsWith('assets/')
+                  ? Image.asset(
+                      images[index],
+                      width: 64,
+                      height: 64,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 64,
+                        height: 64,
+                        color: Colors.black12,
+                        child: const Icon(Icons.image_not_supported_outlined),
+                      ),
+                    )
+                  : Image.network(
+                      images[index],
+                      width: 64,
+                      height: 64,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        width: 64,
+                        height: 64,
+                        color: Colors.black12,
+                        child: const Icon(Icons.image_not_supported_outlined),
+                      ),
+                    ),
             ),
           ),
         ),

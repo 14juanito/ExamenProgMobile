@@ -115,10 +115,15 @@ class _HomeScreenState extends State<HomeScreen> {
                       ...filtered.map(
                         (event) => Padding(
                           padding: const EdgeInsets.only(bottom: 16),
-                          child: _EventCard(
-                            event: event,
-                            dateLabel: _dateLabel(event.date),
-                          ),
+                          child: (event.id == 'evt-fally' || event.id == 'evt-dena' || event.id == 'evt-niska') && event.images.isNotEmpty
+                              ? _EventCardWithSlider(
+                                  event: event,
+                                  dateLabel: _dateLabel(event.date),
+                                )
+                              : _EventCard(
+                                  event: event,
+                                  dateLabel: _dateLabel(event.date),
+                                ),
                         ),
                       ),
                     const SizedBox(height: 6),
@@ -136,6 +141,227 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _EventCardWithSlider extends StatefulWidget {
+  final Event event;
+  final String dateLabel;
+
+  const _EventCardWithSlider({
+    required this.event,
+    required this.dateLabel,
+  });
+
+  @override
+  State<_EventCardWithSlider> createState() => _EventCardWithSliderState();
+}
+
+class _EventCardWithSliderState extends State<_EventCardWithSlider> {
+  late PageController _pageController;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 1.0);
+    // Auto-scroll every 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      if (mounted && _pageController.hasClients) {
+        _pageController.nextPage(
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final images = widget.event.images.isNotEmpty 
+        ? widget.event.images 
+        : [widget.event.imageUrl];
+
+    return Card(
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(22),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => EventDetailScreen(event: widget.event)),
+          );
+        },
+        child: SizedBox(
+          height: 300,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: Stack(
+              children: [
+                PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentPage = index;
+                    });
+                    // Auto-scroll loop
+                    Future.delayed(const Duration(seconds: 3), () {
+                      if (mounted) {
+                        int nextPage = (_currentPage + 1) % images.length;
+                        _pageController.animateToPage(
+                          nextPage,
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeInOut,
+                        );
+                      }
+                    });
+                  },
+                  itemCount: images.length,
+                  itemBuilder: (context, index) {
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        images[index].contains('assets/')
+                            ? Image.asset(
+                                images[index],
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  color: Colors.black12,
+                                  alignment: Alignment.center,
+                                  child: const Icon(Icons.image_not_supported_outlined, size: 42),
+                                ),
+                              )
+                            : Image.network(
+                                images[index],
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  color: Colors.black12,
+                                  alignment: Alignment.center,
+                                  child: const Icon(Icons.image_not_supported_outlined, size: 42),
+                                ),
+                              ),
+                        Container(
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Colors.transparent, Colors.black87],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              stops: [0.4, 1],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                // Page indicator
+                if (images.length > 1)
+                  Positioned(
+                    bottom: 80,
+                    left: 0,
+                    right: 0,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        images.length,
+                        (index) => Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _currentPage == index 
+                                ? Colors.white 
+                                : Colors.white.withOpacity(0.4),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                Positioned(
+                  top: 14,
+                  right: 14,
+                  child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.55),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    '\$${widget.event.price.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+                Positioned(
+                  bottom: 16,
+                  left: 16,
+                  right: 16,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.event.title,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              widget.event.artist,
+                              style: const TextStyle(
+                                color: Colors.white70,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              const Icon(Icons.star_rounded, color: Colors.amber, size: 18),
+                              const SizedBox(width: 4),
+                              Text(
+                                widget.event.rating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${widget.dateLabel} • ${widget.event.location}',
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${widget.event.availableTickets} restants • vendus ${widget.event.initialTickets - widget.event.availableTickets}',
+                        style: const TextStyle(color: Colors.white60, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -170,15 +396,25 @@ class _EventCard extends StatelessWidget {
             child: Stack(
               children: [
                 Positioned.fill(
-                  child: Image.network(
-                    event.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: Colors.black12,
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.image_not_supported_outlined, size: 42),
-                    ),
-                  ),
+                  child: event.imageUrl.contains('assets/')
+                      ? Image.asset(
+                          event.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: Colors.black12,
+                            alignment: Alignment.center,
+                            child: const Icon(Icons.image_not_supported_outlined, size: 42),
+                          ),
+                        )
+                      : Image.network(
+                          event.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Container(
+                            color: Colors.black12,
+                            alignment: Alignment.center,
+                            child: const Icon(Icons.image_not_supported_outlined, size: 42),
+                          ),
+                        ),
                 ),
                 Positioned.fill(
                   child: Container(
@@ -437,18 +673,28 @@ class _NearbyScroller extends StatelessWidget {
               ],
             ),
             clipBehavior: Clip.antiAlias,
-            child: Stack(
+              child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.network(
-                  event.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: Colors.black12,
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.image_not_supported_outlined),
-                  ),
-                ),
+                event.imageUrl.contains('assets/')
+                    ? Image.asset(
+                        event.imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: Colors.black12,
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.image_not_supported_outlined),
+                        ),
+                      )
+                    : Image.network(
+                        event.imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          color: Colors.black12,
+                          alignment: Alignment.center,
+                          child: const Icon(Icons.image_not_supported_outlined),
+                        ),
+                      ),
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(

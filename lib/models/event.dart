@@ -7,11 +7,12 @@ class Event {
   final String location;
   final double price;
   final String imageUrl;
+  final List<String> images;
   final int availableTickets;
   final double rating;
   final String genre;
-  final Map<String, int> tierAvailability; // e.g. {'VVIP': 50, 'VIP': 120}
-  final Map<String, double> tierPrices; // e.g. {'VVIP': 180, 'VIP': 120}
+  final Map<String, int> tierAvailability;
+  final Map<String, double> tierPrices;
   final int initialTickets;
 
   Event({
@@ -23,6 +24,7 @@ class Event {
     required this.location,
     required this.price,
     required this.imageUrl,
+    this.images = const [],
     required this.availableTickets,
     this.rating = 4.8,
     this.genre = 'Pop',
@@ -41,6 +43,7 @@ class Event {
       location: json['location'],
       price: json['price'].toDouble(),
       imageUrl: json['imageUrl'],
+      images: json['images'] != null ? List<String>.from(json['images']) : [],
       availableTickets: json['availableTickets'],
       rating: (json['rating'] ?? 4.8).toDouble(),
       genre: json['genre'] ?? 'Pop',
@@ -64,6 +67,7 @@ class Event {
       'location': location,
       'price': price,
       'imageUrl': imageUrl,
+      'images': images,
       'availableTickets': availableTickets,
       'rating': rating,
       'genre': genre,
