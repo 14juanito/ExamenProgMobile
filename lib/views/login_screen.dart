@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   borderRadius: BorderRadius.circular(26),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
+                      color: Colors.black.withValues(alpha: 0.06),
                       blurRadius: 18,
                       offset: const Offset(0, 10),
                     ),
@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Text(
                         'Plateforme de réservation de concerts.',
                         style: TextStyle(
-                          color: Colors.black.withOpacity(0.6),
+                          color: Colors.black.withValues(alpha: 0.6),
                         ),
                       ),
                       const SizedBox(height: 22),

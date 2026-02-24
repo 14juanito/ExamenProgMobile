@@ -162,7 +162,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                         const SizedBox(height: 4),
                         Text(
                         event.location,
-                          style: TextStyle(color: Colors.black.withOpacity(0.6)),
+                          style: TextStyle(color: Colors.black.withValues(alpha: 0.6)),
                         ),
                       ],
                     ),
@@ -174,7 +174,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
+                        color: Colors.black.withValues(alpha: 0.08),
                         blurRadius: 12,
                         offset: const Offset(0, 6),
                       )
@@ -196,7 +196,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
             const SizedBox(height: 6),
             Text(
               event.description,
-              style: TextStyle(color: Colors.black.withOpacity(0.62)),
+              style: TextStyle(color: Colors.black.withValues(alpha: 0.62)),
             ),
             const SizedBox(height: 12),
             Row(
@@ -217,7 +217,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   ),
                   child: Text(
                     '${event.availableTickets} billets',
-                    style: TextStyle(color: Colors.black.withOpacity(0.7)),
+                    style: TextStyle(color: Colors.black.withValues(alpha: 0.7)),
                   ),
                 ),
               ],
@@ -230,7 +230,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 12,
                     offset: const Offset(0, 6),
                   )
@@ -281,7 +281,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                       const Spacer(),
                       Text(
                         '$availableForTier restants',
-                        style: TextStyle(color: Colors.black.withOpacity(0.6)),
+                        style: TextStyle(color: Colors.black.withValues(alpha: 0.6)),
                       ),
                     ],
                   ),
@@ -323,11 +323,11 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
               children: [
                 Text(
                   '${event.availableTickets} billets restants',
-                  style: TextStyle(color: Colors.black.withOpacity(0.65)),
+                  style: TextStyle(color: Colors.black.withValues(alpha: 0.65)),
                 ),
                 Text(
                   'Vendues: $purchased',
-                  style: TextStyle(color: Colors.black.withOpacity(0.65)),
+                  style: TextStyle(color: Colors.black.withValues(alpha: 0.65)),
                 ),
               ],
             ),
@@ -372,7 +372,7 @@ class _PhotosRow extends StatelessWidget {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(width: 10),
-            Icon(Icons.chevron_right, color: Colors.black.withOpacity(0.5)),
+            Icon(Icons.chevron_right, color: Colors.black.withValues(alpha: 0.5)),
           ],
         ),
         const SizedBox(height: 10),
@@ -432,7 +432,7 @@ class _InfoGrid extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 14,
             offset: const Offset(0, 8),
           )
@@ -483,7 +483,7 @@ class _InfoTile extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             value,
-            style: TextStyle(color: Colors.black.withOpacity(0.6)),
+            style: TextStyle(color: Colors.black.withValues(alpha: 0.6)),
           ),
         ],
       ),
@@ -501,7 +501,7 @@ class _OrganizerRow extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 6),
           )
@@ -559,7 +559,7 @@ class _ServiceIcons extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 6),
                   )
@@ -604,7 +604,7 @@ class _MapCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 8),
           )
@@ -622,7 +622,7 @@ class _MapCard extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.w700),
                 ),
                 const Spacer(),
-                Icon(Icons.map_outlined, color: Colors.black.withOpacity(0.6)),
+                Icon(Icons.map_outlined, color: Colors.black.withValues(alpha: 0.6)),
               ],
             ),
           ),
@@ -639,7 +639,7 @@ class _MapCard extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             child: Text(
               location,
-              style: TextStyle(color: Colors.black.withOpacity(0.7)),
+              style: TextStyle(color: Colors.black.withValues(alpha: 0.7)),
             ),
           ),
         ],
@@ -662,7 +662,7 @@ class _ItunesTracks extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 8),
           )
@@ -689,7 +689,7 @@ class _ItunesTracks extends StatelessWidget {
                 return Text(
                   'Impossible de charger les titres pour le moment.',
                   style: TextStyle(
-                    color: Colors.black.withOpacity(0.6),
+                    color: Colors.black.withValues(alpha: 0.6),
                   ),
                 );
               }
@@ -699,7 +699,7 @@ class _ItunesTracks extends StatelessWidget {
                 return Text(
                   'Aucune recommandation disponible.',
                   style: TextStyle(
-                    color: Colors.black.withOpacity(0.6),
+                    color: Colors.black.withValues(alpha: 0.6),
                   ),
                 );
               }
@@ -733,7 +733,7 @@ class _ItunesTracks extends StatelessWidget {
                         subtitle: Text(
                           track.albumName,
                           style: TextStyle(
-                            color: Colors.black.withOpacity(0.65),
+                            color: Colors.black.withValues(alpha: 0.65),
                           ),
                         ),
                         trailing: track.previewUrl == null

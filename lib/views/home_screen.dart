@@ -3,9 +3,11 @@ import 'package:provider/provider.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/event_controller.dart';
 import '../models/event.dart';
+import '../models/user.dart';
 import '../theme/app_theme.dart';
 import 'event_detail_screen.dart';
 import 'my_tickets_screen.dart';
+import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,14 +27,6 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<EventController>().loadEvents();
     });
-  }
-
-  Future<void> _signOut() async {
-    await context.read<AuthController>().signOut();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Deconnexion reussie.')),
-    );
   }
 
   List<Event> _filterEvents(List<Event> events) {
@@ -58,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<AuthController>().user;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -72,9 +67,26 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _Header(onTickets: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const MyTicketsScreen()));
-                    }, onLogout: _signOut),
+                    _Header(
+                      user: user,
+                      onProfile: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                        );
+                      },
+                      onTickets: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const MyTicketsScreen()),
+                        );
+                      },
+                      onNotifications: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Notifications bientôt disponibles.')),
+                        );
+                      },
+                    ),
                     const SizedBox(height: 16),
                     _SearchBar(
                       onChanged: (value) => setState(() => _query = value),
@@ -289,7 +301,7 @@ class _EventCardWithSliderState extends State<_EventCardWithSlider> {
                             shape: BoxShape.circle,
                             color: _currentPage == index 
                                 ? Colors.white 
-                                : Colors.white.withOpacity(0.4),
+                                : Colors.white.withValues(alpha: 0.4),
                           ),
                         ),
                       ),
@@ -301,7 +313,7 @@ class _EventCardWithSliderState extends State<_EventCardWithSlider> {
                   child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.55),
+                    color: Colors.black.withValues(alpha: 0.55),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
@@ -442,7 +454,7 @@ class _EventCard extends StatelessWidget {
                   child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.55),
+                    color: Colors.black.withValues(alpha: 0.55),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
@@ -518,10 +530,17 @@ class _EventCard extends StatelessWidget {
 }
 
 class _Header extends StatelessWidget {
+  final User? user;
+  final VoidCallback onProfile;
   final VoidCallback onTickets;
-  final VoidCallback onLogout;
+  final VoidCallback? onNotifications;
 
-  const _Header({required this.onTickets, required this.onLogout});
+  const _Header({
+    required this.user,
+    required this.onProfile,
+    required this.onTickets,
+    this.onNotifications,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -541,7 +560,7 @@ class _Header extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 'Concerts sélectionnés près de chez toi',
-                style: TextStyle(color: Colors.black.withOpacity(0.55)),
+                style: TextStyle(color: Colors.black.withValues(alpha: 0.55)),
               ),
             ],
           ),
@@ -550,12 +569,23 @@ class _Header extends StatelessWidget {
           children: [
             _CircleIcon(
               icon: Icons.person_outline,
+              onTap: onProfile,
+              label: user?.name,
+            ),
+            const SizedBox(width: 10),
+            _CircleIcon(
+              icon: Icons.confirmation_num_outlined,
               onTap: onTickets,
             ),
             const SizedBox(width: 10),
             _CircleIcon(
               icon: Icons.notifications_none_rounded,
-              onTap: onLogout,
+              onTap: onNotifications ??
+                  () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Notifications bientôt disponibles.')),
+                    );
+                  },
             ),
           ],
         ),
@@ -567,25 +597,47 @@ class _Header extends StatelessWidget {
 class _CircleIcon extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
+  final String? label;
 
-  const _CircleIcon({required this.icon, required this.onTap});
+  const _CircleIcon({required this.icon, required this.onTap, this.label});
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.white,
       elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.08),
+      shadowColor: Colors.black.withValues(alpha: 0.08),
       shape: const CircleBorder(),
       child: InkWell(
         customBorder: const CircleBorder(),
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(10),
-          child: Icon(icon, size: 20, color: Colors.black87),
+          child: label == null
+              ? Icon(icon, size: 20, color: Colors.black87)
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(icon, size: 18, color: Colors.black87),
+                    const SizedBox(width: 6),
+                    Text(
+                      _shortLabel(label!),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );
+  }
+
+  String _shortLabel(String value) {
+    final parts = value.trim().split(' ');
+    if (parts.length == 1) return parts.first;
+    return '${parts.first} ${parts[1][0]}.';
   }
 }
 
@@ -604,7 +656,7 @@ class _SearchBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -633,7 +685,7 @@ class _SearchBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.18),
+                    color: Colors.black.withValues(alpha: 0.18),
                     blurRadius: 10,
                     offset: const Offset(0, 6),
                   )
@@ -674,7 +726,7 @@ class _NearbyScroller extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 14,
                   offset: const Offset(0, 8),
                 )
@@ -706,7 +758,7 @@ class _NearbyScroller extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.black.withOpacity(0.4), Colors.black.withOpacity(0.15)],
+                      colors: [Colors.black.withValues(alpha: 0.4), Colors.black.withValues(alpha: 0.15)],
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                     ),
@@ -754,7 +806,7 @@ class _EmptyState extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 8),
           )

@@ -19,8 +19,13 @@ class EventController extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
+    _events = []; // Reset events list
+    _loadEventsAsync();
+  }
+
+  Future<void> _loadEventsAsync() async {
     try {
-      _events = _firestoreService.getEvents();
+      _events = await _firestoreService.getEvents();
     } finally {
       _isLoading = false;
       notifyListeners();
