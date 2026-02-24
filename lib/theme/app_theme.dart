@@ -13,6 +13,15 @@ class AppColors {
 }
 
 class AppTheme {
+  static const LinearGradient appGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFFF5F5F5),
+      Color(0xFFE8E8E8),
+    ],
+  );
+
   static ThemeData get lightTheme {
     final base = ThemeData.light(useMaterial3: true);
     final textTheme = GoogleFonts.plusJakartaSansTextTheme(base.textTheme);

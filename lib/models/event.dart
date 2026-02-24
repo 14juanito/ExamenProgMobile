@@ -43,7 +43,7 @@ class Event {
       location: json['location'],
       price: json['price'].toDouble(),
       imageUrl: json['imageUrl'],
-      images: json['images'] != null ? List<String>.from(json['images']) : [],
+      images: List<String>.from(json['images'] ?? []),
       availableTickets: json['availableTickets'],
       rating: (json['rating'] ?? 4.8).toDouble(),
       genre: json['genre'] ?? 'Pop',

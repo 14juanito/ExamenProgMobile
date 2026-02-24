@@ -115,15 +115,21 @@ class _HomeScreenState extends State<HomeScreen> {
                       ...filtered.map(
                         (event) => Padding(
                           padding: const EdgeInsets.only(bottom: 16),
-                          child: (event.id == 'evt-fally' || event.id == 'evt-dena' || event.id == 'evt-niska') && event.images.isNotEmpty
+                          child: event.id == 'evt-koffi' && event.images.isNotEmpty
                               ? _EventCardWithSlider(
                                   event: event,
                                   dateLabel: _dateLabel(event.date),
+                                  useContainFit: true,
                                 )
-                              : _EventCard(
-                                  event: event,
-                                  dateLabel: _dateLabel(event.date),
-                                ),
+                              : (event.id == 'evt-fally' || event.id == 'evt-dena' || event.id == 'evt-niska' || event.id == 'evt-ferre' || event.id == 'evt-athoms' || event.id == 'evt-moise') && event.images.isNotEmpty
+                                  ? _EventCardWithSlider(
+                                      event: event,
+                                      dateLabel: _dateLabel(event.date),
+                                    )
+                                  : _EventCard(
+                                      event: event,
+                                      dateLabel: _dateLabel(event.date),
+                                    ),
                         ),
                       ),
                     const SizedBox(height: 6),
@@ -150,10 +156,12 @@ class _HomeScreenState extends State<HomeScreen> {
 class _EventCardWithSlider extends StatefulWidget {
   final Event event;
   final String dateLabel;
+  final bool useContainFit;
 
   const _EventCardWithSlider({
     required this.event,
     required this.dateLabel,
+    this.useContainFit = false,
   });
 
   @override

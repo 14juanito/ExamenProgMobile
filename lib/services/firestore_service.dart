@@ -106,7 +106,13 @@ class FirestoreService {
         'description': 'Adoration et louange avec l\'Apôtre Moïse Mbiye et son orchestre.',
         'date': now.add(const Duration(days: 10)),
         'location': 'Stade des Martyrs, Kinshasa',
-        'image': '',
+        'image': 'assets/images/soiree adoration live 1.jpeg',
+        'images': [
+          'assets/images/soiree adoration live 1.jpeg',
+          'assets/images/soiree adoration live 2.jpeg',
+          'assets/images/soiree adoration live 3.jpeg',
+          'assets/images/soiree adoration live 4.jpeg',
+        ],
         'rating': 4.9,
         'genre': 'Worship',
         'tiers': {
@@ -144,7 +150,13 @@ class FirestoreService {
         'description': 'Louange et adoration avec Athoms & Nadège, ambiance acoustique.',
         'date': now.add(const Duration(days: 30)),
         'location': 'Philadelphie, Kisangani',
-        'image': '',
+        'image': 'assets/images/soiree worship intimiste 1.jpeg',
+        'images': [
+          'assets/images/soiree worship intimiste 1.jpeg',
+          'assets/images/soiree worship intimiste 2.jpeg',
+          'assets/images/soiree worship intimiste 3.jpeg',
+          'assets/images/soiree worship intimiste 4.jpeg',
+        ],
         'rating': 4.7,
         'genre': 'Adoration',
         'tiers': {
@@ -182,7 +194,13 @@ class FirestoreService {
         'description': 'Rumba night avec Koffi et Quartier Latin.',
         'date': now.add(const Duration(days: 35)),
         'location': 'Stade Père Raphaël, Kinshasa',
-        'image': '',
+        'image': 'assets/images/Légende viva la music 1.jpeg',
+        'images': [
+          'assets/images/Légende viva la music 1.jpeg',
+          'assets/images/Légende viva la musica 2.jpeg',
+          'assets/images/Légende viva la musica 3.jpeg',
+          'assets/images/Légende viva la musica 4.jpeg',
+        ],
         'rating': 4.6,
         'genre': 'Rumba',
         'tiers': {
@@ -198,7 +216,13 @@ class FirestoreService {
         'description': 'Soirée rumba chic avec l\'artiste Jésus de nuances.',
         'date': now.add(const Duration(days: 27)),
         'location': 'Pullman Grand Hôtel, Kinshasa',
-        'image': '',
+        'image': 'assets/images/Harmonie rumba 1.jpeg',
+        'images': [
+          'assets/images/Harmonie rumba 1.jpeg',
+          'assets/images/Harmonie rumba 2.jpeg',
+          'assets/images/Harmonie rumba 3.jpeg',
+          'assets/images/Harmonie rumba 4.jpeg',
+        ],
         'rating': 4.7,
         'genre': 'Rumba',
         'tiers': {
