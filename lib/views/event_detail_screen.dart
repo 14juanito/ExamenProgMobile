@@ -326,7 +326,7 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
                   style: TextStyle(color: Colors.black.withValues(alpha: 0.65)),
                 ),
                 Text(
-                  'Vendues: \$purchased',
+                  'Vendues: $purchased',
                   style: TextStyle(color: Colors.black.withValues(alpha: 0.65)),
                 ),
               ],
@@ -689,7 +689,7 @@ class _ItunesTracks extends StatelessWidget {
                 return Text(
                   'Impossible de charger les titres pour le moment.',
                   style: TextStyle(
-                    color: Colors.black.withOpacity(0.6),
+                    color: Colors.black.withValues(alpha: 0.6),
                   ),
                 );
               }
