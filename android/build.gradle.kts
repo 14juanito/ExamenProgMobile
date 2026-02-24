@@ -1,3 +1,8 @@
+plugins {
+    // Plugin Gradle des services Google (utilisé dans le module app)
+    id("com.google.gms.google-services") version "4.4.4" apply false
+}
+
 allprojects {
     repositories {
         google()
