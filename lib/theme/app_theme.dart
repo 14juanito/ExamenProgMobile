@@ -13,6 +13,15 @@ class AppColors {
 }
 
 class AppTheme {
+  static const LinearGradient appGradient = LinearGradient(
+    colors: [
+      Color(0xFF1a1a2e),
+      Color(0xFF16213e),
+    ],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
   static ThemeData get lightTheme {
     final base = ThemeData.light(useMaterial3: true);
     final textTheme = GoogleFonts.plusJakartaSansTextTheme(base.textTheme);
@@ -30,7 +39,7 @@ class AppTheme {
         centerTitle: false,
         backgroundColor: AppColors.surface,
         elevation: 0.6,
-        shadowColor: Colors.black.withOpacity(0.06),
+        shadowColor: Colors.black.withValues(alpha: 0.06),
         foregroundColor: Colors.black,
         titleTextStyle: textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w700,
@@ -41,7 +50,7 @@ class AppTheme {
       cardTheme: CardThemeData(
         color: AppColors.surface,
         elevation: 10,
-        shadowColor: Colors.black.withOpacity(0.08),
+        shadowColor: Colors.black.withValues(alpha: 0.08),
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(22),
@@ -63,8 +72,8 @@ class AppTheme {
           borderSide: BorderSide(color: AppColors.accent, width: 1.2),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        labelStyle: TextStyle(color: Colors.black.withOpacity(0.58)),
-        hintStyle: TextStyle(color: Colors.black.withOpacity(0.35)),
+        labelStyle: TextStyle(color: Colors.black.withValues(alpha: 0.58)),
+        hintStyle: TextStyle(color: Colors.black.withValues(alpha: 0.35)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -75,7 +84,7 @@ class AppTheme {
             borderRadius: BorderRadius.circular(18),
           ),
           elevation: 6,
-          shadowColor: Colors.black.withOpacity(0.12),
+          shadowColor: Colors.black.withValues(alpha: 0.12),
           textStyle: const TextStyle(
             fontWeight: FontWeight.w700,
             letterSpacing: 0.2,

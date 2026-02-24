@@ -1,101 +1,90 @@
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/event.dart';
 import '../models/ticket.dart';
 
-/// In-memory data store to replace Firebase for front-end demonstrations.
-/// Keeps events and tickets locally so the UI can run without backend access.
+/// Service Cloud Firestore pour la gestion des événements et billets
 class FirestoreService {
-  FirestoreService._internal() {
-    _seedEvents();
-  }
+  // Collections Firestore
+  final CollectionReference eventsCollection = FirebaseFirestore.instance.collection('events');
+  final CollectionReference ticketsCollection = FirebaseFirestore.instance.collection('tickets');
+
+  FirestoreService._internal();
 
   static final FirestoreService _instance = FirestoreService._internal();
   factory FirestoreService() => _instance;
 
-  final List<Event> _events = [];
-  final List<Ticket> _tickets = [];
-  final Map<String, Map<String, int>> _initialTierStock = {};
-
-  List<Event> getEvents() => List.unmodifiable(_events);
-
-  List<Ticket> getUserTickets(String userId) {
-    return _tickets.where((t) => t.userId == userId).toList(growable: false);
+  // ============ ÉVÉNEMENTS ============
+  
+  // Lire tous les événements
+  Future<List<Event>> getEvents() async {
+    try {
+      final snapshot = await eventsCollection.get();
+      return snapshot.docs.map((doc) => Event.fromJson(doc.data() as Map<String, dynamic>)).toList();
+    } catch (e) {
+      // En cas d'erreur, retourner des données de démonstration
+      return _getDemoEvents();
+    }
   }
 
+  // Ajouter un événement
+  Future<void> addEvent(Event event) async {
+    await eventsCollection.doc(event.id).set(event.toJson());
+  }
+
+  // Modifier un événement
+  Future<void> updateEvent(Event event) async {
+    await eventsCollection.doc(event.id).update(event.toJson());
+  }
+
+  // Supprimer un événement
+  Future<void> deleteEvent(String eventId) async {
+    await eventsCollection.doc(eventId).delete();
+  }
+
+  // ============ BILLETS ============
+  
+  // Lire les billets d'un utilisateur
+  Future<List<Ticket>> getUserTickets(String userId) async {
+    final snapshot = await ticketsCollection
+        .where('userId', isEqualTo: userId)
+        .get();
+    return snapshot.docs.map((doc) => Ticket.fromJson(doc.data() as Map<String, dynamic>)).toList();
+  }
+
+  // Acheter un billet
   Future<void> purchaseTicket(Ticket ticket) async {
-    final eventIndex = _events.indexWhere((e) => e.id == ticket.eventId);
-    if (eventIndex == -1) throw Exception('Événement introuvable');
-    final e = _events[eventIndex];
-
-    final remainingTier =
-        (e.tierAvailability[ticket.seatCategory] ?? 0) - ticket.quantity;
-    if (remainingTier < 0) {
-      throw Exception('Plus assez de billets ${ticket.seatCategory}');
+    await ticketsCollection.doc(ticket.id).set(ticket.toJson());
+    
+    // Mettre à jour la disponibilité des billets
+    final eventDoc = eventsCollection.doc(ticket.eventId);
+    final eventSnapshot = await eventDoc.get();
+    if (eventSnapshot.exists) {
+      final eventData = eventSnapshot.data() as Map<String, dynamic>;
+      final tierAvailability = Map<String, int>.from(eventData['tierAvailability'] ?? {});
+      final category = ticket.seatCategory;
+      if (tierAvailability.containsKey(category)) {
+        tierAvailability[category] = tierAvailability[category]! - ticket.quantity;
+        await eventDoc.update({'tierAvailability': tierAvailability});
+      }
     }
-
-    final updatedTierAvailability = Map<String, int>.from(e.tierAvailability);
-    updatedTierAvailability[ticket.seatCategory] = remainingTier;
-
-    final newAvailable = e.availableTickets - ticket.quantity;
-    _events[eventIndex] = Event(
-      id: e.id,
-      title: e.title,
-      artist: e.artist,
-      description: e.description,
-      date: e.date,
-      location: e.location,
-      price: e.price,
-      imageUrl: e.imageUrl,
-      images: e.images,
-      availableTickets: newAvailable,
-      rating: e.rating,
-      genre: e.genre,
-      tierAvailability: updatedTierAvailability,
-      tierPrices: e.tierPrices,
-      initialTickets: e.initialTickets,
-    );
-
-    _tickets.add(ticket);
   }
 
+  // Scanner un billet
   Future<void> scanTicket(String ticketId) async {
-    final index = _tickets.indexWhere((t) => t.id == ticketId);
-    if (index != -1) {
-      final current = _tickets[index];
-      _tickets[index] = Ticket(
-        id: current.id,
-        userId: current.userId,
-        eventId: current.eventId,
-        eventTitle: current.eventTitle,
-        eventArtist: current.eventArtist,
-        eventDate: current.eventDate,
-        eventLocation: current.eventLocation,
-        price: current.price,
-        purchaseDate: current.purchaseDate,
-        isScanned: true,
-        seatCategory: current.seatCategory,
-        quantity: current.quantity,
-        paymentOperator: current.paymentOperator,
-        payerPhone: current.payerPhone,
-      );
-    }
+    await ticketsCollection.doc(ticketId).update({'isScanned': true});
   }
 
+  // Obtenir un billet par ID
   Future<Ticket?> getTicketById(String ticketId) async {
-    return _tickets.cast<Ticket?>().firstWhere(
-          (t) => t?.id == ticketId,
-          orElse: () => null,
-        );
+    final doc = await ticketsCollection.doc(ticketId).get();
+    if (!doc.exists) return null;
+    return Ticket.fromJson(doc.data() as Map<String, dynamic>);
   }
 
-  int getPurchasedCount(String eventId) {
-    final initial = _initialTierStock[eventId]?.values.fold<int>(0, (a, b) => a + b) ?? 0;
-    final current = _events.firstWhere((e) => e.id == eventId).availableTickets;
-    return initial - current;
-  }
-
-  void _seedEvents() {
-    if (_events.isNotEmpty) return;
+  // ============ DONNÉES DE DÉMONSTRATION ============
+  
+  List<Event> _getDemoEvents() {
     final now = DateTime.now();
     final rng = Random(42);
     final mockData = [
@@ -138,22 +127,6 @@ class FirestoreService {
         },
       },
       {
-        'id': 'evt-athoms',
-        'title': 'Soirée Worship Intimiste',
-        'artist': 'Athoms Mbuma',
-        'description': 'Louange et adoration avec Athoms & Nadège, ambiance acoustique.',
-        'date': now.add(const Duration(days: 30)),
-        'location': 'Philadelphie, Kisangani',
-        'image': '',
-        'rating': 4.7,
-        'genre': 'Adoration',
-        'tiers': {
-          'VVIP': {'price': 140.0, 'stock': 50},
-          'VIP': {'price': 95.0, 'stock': 150},
-          'Normal': {'price': 50.0, 'stock': 260},
-        },
-      },
-      {
         'id': 'evt-fally',
         'title': 'Tokoos Live',
         'artist': 'Fally Ipupa',
@@ -175,63 +148,9 @@ class FirestoreService {
           'Normal': {'price': 80.0, 'stock': 420},
         },
       },
-      {
-        'id': 'evt-koffi',
-        'title': 'Légende Viva La Musica',
-        'artist': 'Koffi Olomidé',
-        'description': 'Rumba night avec Koffi et Quartier Latin.',
-        'date': now.add(const Duration(days: 35)),
-        'location': 'Stade Père Raphaël, Kinshasa',
-        'image': '',
-        'rating': 4.6,
-        'genre': 'Rumba',
-        'tiers': {
-          'VVIP': {'price': 210.0, 'stock': 70},
-          'VIP': {'price': 140.0, 'stock': 190},
-          'Normal': {'price': 65.0, 'stock': 380},
-        },
-      },
-      {
-        'id': 'evt-ferre',
-        'title': 'Harmonie Rumba',
-        'artist': 'Ferré Gola',
-        'description': 'Soirée rumba chic avec l\'artiste Jésus de nuances.',
-        'date': now.add(const Duration(days: 27)),
-        'location': 'Pullman Grand Hôtel, Kinshasa',
-        'image': '',
-        'rating': 4.7,
-        'genre': 'Rumba',
-        'tiers': {
-          'VVIP': {'price': 180.0, 'stock': 60},
-          'VIP': {'price': 120.0, 'stock': 160},
-          'Normal': {'price': 70.0, 'stock': 340},
-        },
-      },
-      {
-        'id': 'evt-niska',
-        'title': 'Concert R.A.P.',
-        'artist': 'Niska',
-        'description': 'Show rap/afrotrap avec live band et guests.',
-        'date': now.add(const Duration(days: 40)),
-        'location': 'Palais du Peuple, Kinshasa',
-        'image': 'assets/images/CONCERT RAP NISKA 1.jpg',
-        'images': [
-          'assets/images/CONCERT RAP NISKA 1.jpg',
-          'assets/images/CONERT RAP NISKA 2.png',
-          'assets/images/CONCERT RAP NISKA 3.webp',
-          'assets/images/CONCERT RAP NISKA 4.jpg',
-        ],
-        'rating': 4.5,
-        'genre': 'Rap',
-        'tiers': {
-          'VVIP': {'price': 160.0, 'stock': 70},
-          'VIP': {'price': 110.0, 'stock': 170},
-          'Normal': {'price': 60.0, 'stock': 360},
-        },
-      },
     ];
 
-    for (final raw in mockData) {
+    return mockData.map((raw) {
       final tiers = Map<String, dynamic>.from(raw['tiers'] as Map);
       final tierAvailability = <String, int>{};
       final tierPrices = <String, double>{};
@@ -240,34 +159,30 @@ class FirestoreService {
         tierPrices[key] = (value['price'] as num).toDouble();
       });
 
-      // light randomization to vary availability demo
       final noise = rng.nextInt(30) - 10;
       final tierAvailabilityNoisy = tierAvailability.map(
         (k, v) => MapEntry(k, (v + noise).clamp(30, 500)),
       );
 
       final totalTickets = tierAvailabilityNoisy.values.fold<int>(0, (a, b) => a + b);
-      _initialTierStock[raw['id'] as String] = Map<String, int>.from(tierAvailabilityNoisy);
 
-      _events.add(
-        Event(
-          id: raw['id'] as String,
-          title: raw['title'] as String,
-          artist: raw['artist'] as String,
-          description: raw['description'] as String,
-          date: raw['date'] as DateTime,
-          location: raw['location'] as String,
-          price: tierPrices.entries.first.value,
-          imageUrl: raw['image'] as String,
-          images: raw['images'] != null ? List<String>.from(raw['images'] as List) : [],
-          availableTickets: totalTickets,
-          rating: raw['rating'] as double,
-          genre: raw['genre'] as String,
-          tierAvailability: tierAvailabilityNoisy,
-          tierPrices: tierPrices,
-          initialTickets: totalTickets,
-        ),
+      return Event(
+        id: raw['id'] as String,
+        title: raw['title'] as String,
+        artist: raw['artist'] as String,
+        description: raw['description'] as String,
+        date: raw['date'] as DateTime,
+        location: raw['location'] as String,
+        price: tierPrices.entries.first.value,
+        imageUrl: raw['image'] as String,
+        images: raw['images'] != null ? List<String>.from(raw['images'] as List) : [],
+        availableTickets: totalTickets,
+        rating: raw['rating'] as double,
+        genre: raw['genre'] as String,
+        tierAvailability: tierAvailabilityNoisy,
+        tierPrices: tierPrices,
+        initialTickets: totalTickets,
       );
-    }
+    }).toList();
   }
 }

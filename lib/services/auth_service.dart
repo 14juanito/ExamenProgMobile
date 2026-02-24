@@ -1,65 +1,73 @@
-import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:google_sign_in/google_sign_in.dart';
 import '../models/user.dart';
 
-/// Frontend-only auth stub to decouple the UI from Firebase/Google Sign-In.
-/// Accepts any credentials and keeps the "session" in memory.
 class AuthService {
-  final Map<String, String> _passwords = {}; // email -> password
-  final Map<String, User> _users = {};
-  final StreamController<User?> _authStream =
-      StreamController<User?>.broadcast();
+  final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
 
-  Stream<User?> get authStateChanges => _authStream.stream;
-
+  // Connexion email/password
   Future<User?> signInWithEmail(String email, String password) async {
-    await Future.delayed(const Duration(milliseconds: 260));
-    final storedPassword = _passwords[email];
-
-    if (storedPassword != null && storedPassword != password) {
-      throw Exception('Mot de passe incorrect.');
-    }
-
-    final user = _users[email] ??
-        User(
-          id: 'local-${email.hashCode}',
-          email: email,
-          name: email.split('@').first,
-        );
-
-    _users[email] = user;
-    _passwords[email] = password;
-    _authStream.add(user);
-    return user;
-  }
-
-  Future<User?> signUpWithEmail(String email, String password, String name) async {
-    await Future.delayed(const Duration(milliseconds: 260));
-    final user = User(
-      id: 'local-${email.hashCode}',
+    final credential = await _auth.signInWithEmailAndPassword(
       email: email,
-      name: name,
+      password: password,
     );
-    _users[email] = user;
-    _passwords[email] = password;
-    _authStream.add(user);
-    return user;
+    if (credential.user == null) return null;
+    return User.fromFirebaseUser(credential.user!);
   }
 
+  // Inscription
+  Future<User?> signUpWithEmail(String email, String password, String name) async {
+    final credential = await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    
+    // Mettre à jour le displayName
+    await credential.user?.updateDisplayName(name);
+    
+    if (credential.user == null) return null;
+    return User.fromFirebaseUser(credential.user!);
+  }
+
+  // Google Sign In
   Future<User?> signInWithGoogle() async {
-    await Future.delayed(const Duration(milliseconds: 260));
-    final user = User(
-      id: 'google-demo',
-      email: 'demo@eticket.app',
-      name: 'Fan Demo',
-      photoUrl: null,
+    final GoogleSignInAccount? googleUser =
+        await GoogleSignIn().signIn();
+
+    if (googleUser == null) return null;
+
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
+
+    final credential = firebase_auth.GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
     );
-    _users[user.email] = user;
-    _authStream.add(user);
-    return user;
+
+    final userCredential =
+        await _auth.signInWithCredential(credential);
+
+    if (userCredential.user == null) return null;
+    return User.fromFirebaseUser(userCredential.user!);
   }
 
+  // Déconnexion
   Future<void> signOut() async {
-    await Future.delayed(const Duration(milliseconds: 120));
-    _authStream.add(null);
+    await _auth.signOut();
+  }
+
+  // Obtenir l'utilisateur actuel
+  User? get currentUser {
+    final firebaseUser = _auth.currentUser;
+    if (firebaseUser == null) return null;
+    return User.fromFirebaseUser(firebaseUser);
+  }
+
+  // Stream pour l'état d'authentification
+  Stream<User?> get authStateChanges {
+    return _auth.authStateChanges().map((firebaseUser) {
+      if (firebaseUser == null) return null;
+      return User.fromFirebaseUser(firebaseUser);
+    });
   }
 }

@@ -47,11 +47,11 @@ class _MyTicketsScreenState extends State<MyTicketsScreen> {
                 margin: const EdgeInsets.all(24),
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: AppColors.surface.withOpacity(0.94),
+                  color: AppColors.surface.withValues(alpha: 0.94),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
+                      color: Colors.black.withValues(alpha: 0.06),
                       blurRadius: 12,
                       offset: const Offset(0, 8),
                     ),
@@ -170,12 +170,12 @@ class _TicketCard extends StatelessWidget {
   Widget _line(IconData icon, String value) {
     return Row(
       children: [
-        Icon(icon, size: 15, color: Colors.black.withOpacity(0.8)),
+        Icon(icon, size: 15, color: Colors.black.withValues(alpha: 0.8)),
         const SizedBox(width: 6),
         Expanded(
           child: Text(
             value,
-            style: TextStyle(color: Colors.black.withOpacity(0.78)),
+            style: TextStyle(color: Colors.black.withValues(alpha: 0.78)),
           ),
         ),
       ],

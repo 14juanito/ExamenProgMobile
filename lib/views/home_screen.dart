@@ -281,7 +281,7 @@ class _EventCardWithSliderState extends State<_EventCardWithSlider> {
                             shape: BoxShape.circle,
                             color: _currentPage == index 
                                 ? Colors.white 
-                                : Colors.white.withOpacity(0.4),
+                                : Colors.white.withValues(alpha: 0.4),
                           ),
                         ),
                       ),
@@ -293,7 +293,7 @@ class _EventCardWithSliderState extends State<_EventCardWithSlider> {
                   child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.55),
+                    color: Colors.black.withValues(alpha: 0.55),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
@@ -434,7 +434,7 @@ class _EventCard extends StatelessWidget {
                   child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.55),
+                    color: Colors.black.withValues(alpha: 0.55),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
@@ -533,7 +533,7 @@ class _Header extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 'Concerts sélectionnés près de chez toi',
-                style: TextStyle(color: Colors.black.withOpacity(0.55)),
+                style: TextStyle(color: Colors.black.withValues(alpha: 0.55)),
               ),
             ],
           ),
@@ -567,7 +567,7 @@ class _CircleIcon extends StatelessWidget {
     return Material(
       color: Colors.white,
       elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.08),
+      shadowColor: Colors.black.withValues(alpha: 0.08),
       shape: const CircleBorder(),
       child: InkWell(
         customBorder: const CircleBorder(),
@@ -596,7 +596,7 @@ class _SearchBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha: 0.06),
             blurRadius: 16,
             offset: const Offset(0, 8),
           ),
@@ -625,7 +625,7 @@ class _SearchBar extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.18),
+                    color: Colors.black.withValues(alpha: 0.18),
                     blurRadius: 10,
                     offset: const Offset(0, 6),
                   )
@@ -666,7 +666,7 @@ class _NearbyScroller extends StatelessWidget {
               borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
+                  color: Colors.black.withValues(alpha: 0.06),
                   blurRadius: 14,
                   offset: const Offset(0, 8),
                 )
@@ -698,7 +698,7 @@ class _NearbyScroller extends StatelessWidget {
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.black.withOpacity(0.4), Colors.black.withOpacity(0.15)],
+                      colors: [Colors.black.withValues(alpha: 0.4), Colors.black.withValues(alpha: 0.15)],
                       begin: Alignment.bottomCenter,
                       end: Alignment.topCenter,
                     ),
@@ -746,7 +746,7 @@ class _EmptyState extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 8),
           )
