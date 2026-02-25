@@ -1,6 +1,6 @@
 # e-ticket — Application de Billetterie (frontend only)
 
-Application Flutter de billetterie **e-ticket**, tournée en démo 100 % front-end (données mock en mémoire, aucun Firebase requis).
+Application Flutter de billetterie **e-ticket**
 
 ## Architecture rapide
 ```
@@ -25,7 +25,7 @@ flutter run
 ```
 
 ## Fonctionnalités
-- Connexion / inscription factice (email + bouton Google de démo)
+- Connexion / inscription (email + bouton Google de démo)
 - Liste d'événements pré-remplis, recherche, détails
 - Achat de billet (en mémoire) + liste de mes billets
 - QR code généré et scanner pour marquer un billet utilisé
@@ -37,6 +37,4 @@ flutter build apk --debug   # build local sans backend
 flutter test                # s'il y a des tests unitaires
 ```
 
-## Remarques
-- Pas de config Firebase ni de fichiers google-services/Info.plist.
-- Les données sont volatiles (se réinitialisent à chaque relance).
+
