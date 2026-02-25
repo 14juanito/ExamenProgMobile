@@ -1,4 +1,4 @@
-# e-ticket — Application de Billetterie (frontend only)
+# e-ticket — Application de Billetterie 
 
 Application Flutter de billetterie **e-ticket**
 
