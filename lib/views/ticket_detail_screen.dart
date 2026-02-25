@@ -139,6 +139,20 @@ class TicketDetailScreen extends StatelessWidget {
                       'Mobile Money',
                       '${ticket.paymentOperator} • ${ticket.payerPhone.isEmpty ? 'Non fourni' : ticket.payerPhone}',
                     ),
+                    const SizedBox(height: 12),
+                    _buildInfoRow(
+                      Icons.verified_outlined,
+                      'Statut paiement',
+                      ticket.paymentStatus,
+                    ),
+                    if (ticket.transactionId != null) ...[
+                      const SizedBox(height: 12),
+                      _buildInfoRow(
+                        Icons.receipt_long_outlined,
+                        'ID Transaction',
+                        ticket.transactionId!,
+                      ),
+                    ],
                   ],
                 ),
               ),

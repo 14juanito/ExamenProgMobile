@@ -6,7 +6,9 @@ import '../controllers/ticket_controller.dart';
 import '../models/artist_track.dart';
 import '../models/event.dart';
 import '../models/ticket.dart';
+import '../services/payment_service.dart';
 import '../theme/app_theme.dart';
+import 'ticket_detail_screen.dart';
 
 class EventDetailScreen extends StatefulWidget {
   final Event event;
@@ -43,7 +45,6 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
 
   Future<void> _purchaseTicket() async {
     final auth = context.read<AuthController>();
-    final ticketController = context.read<TicketController>();
     if (auth.user == null) return;
 
     final remaining = _event.tierAvailability[_selectedTier] ?? 0;
@@ -54,25 +55,117 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
       return;
     }
 
+    final phone = _phoneController.text.trim();
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez entrer votre numéro Mobile Money.')),
+      );
+      return;
+    }
+
     final tierPrice = _event.tierPrices[_selectedTier] ?? _event.price;
+    final totalAmount = tierPrice * _quantity;
+
+    // Afficher la dialogue de confirmation de paiement
+    final confirmPayment = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmer le paiement'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Événement: ${_event.title}'),
+            const SizedBox(height: 8),
+            Text('Catégorie: $_selectedTier x$_quantity'),
+            const SizedBox(height: 8),
+            Text('Montant total: \$${totalAmount.toStringAsFixed(2)}'),
+            const SizedBox(height: 8),
+            Text('Opérateur: $_operator'),
+            Text('Téléphone: $phone'),
+            const SizedBox(height: 16),
+            const Text(
+              'Cliquez sur "Confirmer" pour procéder au paiement via Mobile Money.',
+              style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Confirmer'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmPayment != true) return;
+
+    // Afficher le dialogue de traitement du paiement
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 20),
+            Text('Traitement du paiement...'),
+          ],
+        ),
+      ),
+    );
+
+    // Simuler le paiement avec le service
+    final paymentResult = await PaymentService.processPayment(
+      operator: _operator,
+      phoneNumber: phone,
+      amount: totalAmount,
+      eventTitle: _event.title,
+    );
+
+    // Fermer le dialogue de chargement
+    if (mounted) Navigator.pop(context);
+
+    if (!paymentResult.success) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Paiement échoué: ${paymentResult.message}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    // Paiement réussi - créer le billet
+    final ticketController = context.read<TicketController>();
     final ticket = Ticket(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: paymentResult.transactionId ?? DateTime.now().millisecondsSinceEpoch.toString(),
       userId: auth.user!.id,
       eventId: _event.id,
       eventTitle: _event.title,
       eventArtist: _event.artist,
       eventDate: _event.date,
       eventLocation: _event.location,
-      price: tierPrice * _quantity,
+      price: totalAmount,
       purchaseDate: DateTime.now(),
       seatCategory: _selectedTier,
       quantity: _quantity,
       paymentOperator: _operator,
-      payerPhone: _phoneController.text.trim(),
+      payerPhone: phone,
+      paymentStatus: 'COMPLETED',
+      transactionId: paymentResult.transactionId,
     );
 
     await ticketController.purchaseTicket(ticket);
-    // refresh events to reflect availability
+
+    // Rafraîchir les événements
     context.read<EventController>().loadEvents();
     final refreshed = context.read<EventController>().events.firstWhere(
           (e) => e.id == _event.id,
@@ -81,8 +174,24 @@ class _EventDetailScreenState extends State<EventDetailScreen> {
     setState(() => _event = refreshed);
 
     if (!mounted) return;
+
+    // Afficher le message de succès avec les détails du paiement
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Billet achete avec succes.')),
+      SnackBar(
+        content: Text(
+          'Paiement réussi! ID: ${paymentResult.transactionId}',
+        ),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+
+    // Naviguer vers l'écran de détail du billet avec QR code
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TicketDetailScreen(ticket: ticket),
+      ),
     );
   }
 

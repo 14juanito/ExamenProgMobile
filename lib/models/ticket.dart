@@ -13,6 +13,8 @@ class Ticket {
   final int quantity;
   final String paymentOperator;
   final String payerPhone;
+  final String paymentStatus;
+  final String? transactionId;
 
   Ticket({
     required this.id,
@@ -29,6 +31,8 @@ class Ticket {
     this.quantity = 1,
     this.paymentOperator = 'M-Pesa',
     this.payerPhone = '',
+    this.paymentStatus = 'COMPLETED',
+    this.transactionId,
   });
 
   factory Ticket.fromJson(Map<String, dynamic> json) {
@@ -47,6 +51,8 @@ class Ticket {
       quantity: json['quantity'] ?? 1,
       paymentOperator: json['paymentOperator'] ?? 'M-Pesa',
       payerPhone: json['payerPhone'] ?? '',
+      paymentStatus: json['paymentStatus'] ?? 'COMPLETED',
+      transactionId: json['transactionId'],
     );
   }
 
@@ -66,6 +72,8 @@ class Ticket {
       'quantity': quantity,
       'paymentOperator': paymentOperator,
       'payerPhone': payerPhone,
+      'paymentStatus': paymentStatus,
+      'transactionId': transactionId,
     };
   }
 }
